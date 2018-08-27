@@ -10,13 +10,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^2.4.1",
     "express": "^4.16.3",
     "jsonic": "^0.3.0",
+    "lodash": "^4.17.10",
     "node-fetch": "^2.2.0",
     "node.bittrex.api": "^1.0.0",
     "poloniex-api-node": "^1.9.0",
     "signalr-client": "0.0.18",
     "underscore": "^1.9.1",
+    "ws": "^6.0.0",
     "zlib": "^1.0.5"
   }
 }

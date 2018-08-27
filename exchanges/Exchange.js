@@ -12,7 +12,7 @@ class Exchange {
     throw new Error(`Method updateTickers must be implemented in ${this.exchange} subclass.`)
   }
 
-  async formatOrderBooks () {
+  formatOrderBooks () {
     throw new Error(`Method formatOrderBooks must be implemented in ${this.exchange} subclass.`)
   }
 

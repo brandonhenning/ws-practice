@@ -1,6 +1,7 @@
 const exchangeManager = require('./exchangeManager')
 const activeExchanges = require('./configs/exchanges').Exchanges
-const exchanges = getActiveExchanges(activeExchanges)
+const log = console.log
+const chalk = require('chalk')
 
 
 function getActiveExchanges (exchangeObject) {
@@ -9,14 +10,18 @@ function getActiveExchanges (exchangeObject) {
   return exchanges
 }
 
+const exchanges = getActiveExchanges(activeExchanges)
+
 async function updateAllExchanges (exchanges) {
   return await exchanges.forEach((exchange) => exchangeManager.updateTickers(exchange))
 }
 
 async function start () {
+  log(chalk.magenta('Starting server engine'))
   updateAllExchanges(exchanges)
 }
 
 module.exports = {
   start
 }
+
