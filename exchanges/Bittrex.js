@@ -1,7 +1,6 @@
 
 const Exchange = require('./Exchange')
 const _ = require('underscore')
-const fetch = require('node-fetch')
 const BittrexClient = require('node.bittrex.api')
 // Configs
 const coinConfigs = require('../configs/coins')
@@ -11,9 +10,11 @@ const primaryCoin = exchangeConfigs.PrimaryExchangeCoin
 const log = console.log
 const chalk = require('chalk')
 const priceStore = require('../orderbook/pricestore')
+const ws = require('../server')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].bittrex)
+
 
 
 class Bittrex extends Exchange {
@@ -35,13 +36,21 @@ class Bittrex extends Exchange {
       priceStore.data.bids = newBidBook
       priceStore.data.asks = newAskBook
     })
-    // this.client.websockets.subscribe(['BTC-ETH'], function(data, client) {
-    //   if (data.M === 'updateExchangeState') {
-    //     data.A.forEach(function(data_for) {
-    //       console.log('Market Update for '+ data_for.MarketName, data_for)
-    //     })
-    //   }
-    // })
+    this.client.websockets.subscribe(['BTC-ETH'], function(data) {
+      if (data.M === 'updateExchangeState') {
+        data.A.forEach(function(message) {
+          let askChanges = message.Sells.map(order => {
+            return { price: order.Rate, quantity: order.Quantity, exchanges: 'bittrex' }})
+          let bidChanges = message.Buys.map(order => {
+            return { price: order.Rate, quantity: order.Quantity, exchanges: 'bittrex' }})
+
+          priceStore.updates.asks = askChanges
+          priceStore.updates.bids = bidChanges
+
+          
+        })
+      }
+    })
   }
 
   formatOrderBooks(data) {

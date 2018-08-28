@@ -1,6 +1,4 @@
 const _ = require('lodash')
-const priceStore = require('../orderbook/pricestore').data
-
 
 function orderAskBook (array) {
   let sorted = _.orderBy(array, [(o) => +o.price], ['asc'])
@@ -12,11 +10,6 @@ function orderBidBook (array) {
   return sorted
 }
 
-function countRepeatEntries (priceStore) {
-  priceStore.bids.filter(entry => {
-    
-  })
-}
 
 
 module.exports = {

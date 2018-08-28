@@ -10,6 +10,7 @@ const log = console.log
 const chalk = require('chalk')
 const priceStore = require('../orderbook/pricestore')
 const utils = require('../utils/orderbookSorting')
+const websocket = require('../server')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].poloniex)
@@ -26,12 +27,9 @@ class Poloniex extends Exchange {
 
   async updateTickers () {
     this.client.subscribe('BTC_ETH')
-    
     this.client.on('message', (channelName, data, seq) => {
       if (channelName === 'BTC_ETH') {
-        log(chalk.blue(`order book and trade updates received for currency pair ${channelName}`))
-        log(chalk.blue(`data sequence number is ${seq}`))
-        // log(chalk.blue(`Tickerc: ${JSON.stringify(data)}`))
+        log(chalk.blue(`Order book and trade updates received for currency pair ${channelName}`))
         this.filterWebsocketDataType(data)
       }
     })
@@ -46,38 +44,29 @@ class Poloniex extends Exchange {
       let newAskBook = priceStore.data.asks.concat(asks)
       priceStore.data.bids = utils.orderBidBook(newBidBook)
       priceStore.data.asks = utils.orderAskBook(newAskBook)
-      log(priceStore.data.asks.length, priceStore.data.bids.length)
-
     } else {
-      data.filter(update => {
-        log('Do something here with updates later, for now get main orderbook working')
-        // this.modifyOrderbook(update)
-        })
+      this.formatModifyOrders(data)
     }
   }
 
-  modifyOrderbook(data) {
-    if (data.type === 'orderBookRemove') {
-      let side = data.data.type
-      let array = [priceStore.data[`${side}s`]]
-      let newOrderBook = array.filter(entries => {
-        return entries.price !== data.data.rate
-      })
-      priceStore.data[`${side}s`] = newOrderBook
-
-    } else if (data.type === 'orderBookModify') {
-      let side = data.data.type
-      let array = priceStore.data[`${side}s`]
-      let newOrderBook = array.map(entry => {
-        if (entry.price === data.data.rate) {
-          return entry = { price: data.data.rate,
-            quantity: data.data.amount, 
-            exchanges: 'poloniex' }
-        } else return entry
-      })
-      priceStore.data[`${side}s`] = newOrderBook
-    }
+  formatModifyOrders (data) {
+    let newBidsBook = []
+    let newAsksBook = []
+    data.forEach(order => {
+      let newOrder = {
+        price: order.data.rate,
+        quantity: order.data.amount,
+        exchanges: 'poloniex' 
+      }
+      if (order.data.type === 'ask')
+      newAsksBook.push(newOrder)
+      if (order.data.type === 'bid')
+      newBidsBook.push(newOrder)
+    })
+    let something = { bids: newBidsBook, asks: newAsksBook }
   }
+
+  
 
   formatOrderBooks(data) {
     const unformatted = Object.entries(data)
