@@ -10,7 +10,8 @@ const primaryCoin = exchangeConfigs.PrimaryExchangeCoin
 const log = console.log
 const chalk = require('chalk')
 const priceStore = require('../orderbook/pricestore')
-const ws = require('../server')
+const ws = require('../websocketServer')
+const pipeline = require('../orderbook/pipeline')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].bittrex)
@@ -28,13 +29,13 @@ class Bittrex extends Exchange {
   }
 
   async updateTickers () {
-    this.client.getorderbook({ market : 'BTC-ETH', depth : 100, type : 'both' }, ( data, err ) => {
-      let asks = this.formatOrderBooks(data.result.sell)
-      let bids = this.formatOrderBooks(data.result.buy)
-      let newBidBook = priceStore.data.bids.concat(bids)
-      let newAskBook = priceStore.data.asks.concat(asks)
-      priceStore.data.bids = newBidBook
-      priceStore.data.asks = newAskBook
+    this.client.getorderbook({ market : 'BTC-ETH', depth : '20', type : 'both' }, ( data, err ) => {
+      let topOfAsks = this.sliceOrderBooks(data.result.sell)
+      let topOfBids = this.sliceOrderBooks(data.result.buy)
+      let asks = this.formatOrderBooks(topOfAsks)
+      let bids = this.formatOrderBooks(topOfBids)
+      priceStore.data.bids = bids
+      priceStore.data.asks = asks
     })
     this.client.websockets.subscribe(['BTC-ETH'], function(data) {
       if (data.M === 'updateExchangeState') {
@@ -44,13 +45,19 @@ class Bittrex extends Exchange {
           let bidChanges = message.Buys.map(order => {
             return { price: order.Rate, quantity: order.Quantity, exchanges: 'bittrex' }})
 
-          priceStore.updates.asks = askChanges
-          priceStore.updates.bids = bidChanges
+          pipeline.sendAskThroughPipeline(askChanges)
+          pipeline.sendBidThroughPipeline(bidChanges)
 
-          
+          // Websocket broadcasts will go here on updates
+          // ws.broadcast()
+          // log('Broadcasting.. Bittrex Data')
         })
       }
     })
+  }
+
+  sliceOrderBooks(data) {
+    return data.slice(0, 20)
   }
 
   formatOrderBooks(data) {

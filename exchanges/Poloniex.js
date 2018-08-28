@@ -7,10 +7,9 @@ const activeCoins = Object.keys(coinConfigs.Coins).filter(coin => { if (coinConf
 const exchangeConfigs = require('../configs/exchanges')
 const primaryCoin = exchangeConfigs.PrimaryExchangeCoin
 const log = console.log
-const chalk = require('chalk')
-const priceStore = require('../orderbook/pricestore')
-const utils = require('../utils/orderbookSorting')
+const priceStore = require('../orderbook/pricestore').data
 const websocket = require('../server')
+const pipeline = require('../orderbook/pipeline')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].poloniex)
@@ -29,7 +28,6 @@ class Poloniex extends Exchange {
     this.client.subscribe('BTC_ETH')
     this.client.on('message', (channelName, data, seq) => {
       if (channelName === 'BTC_ETH') {
-        log(chalk.blue(`Order book and trade updates received for currency pair ${channelName}`))
         this.filterWebsocketDataType(data)
       }
     })
@@ -38,14 +36,17 @@ class Poloniex extends Exchange {
 
   filterWebsocketDataType(data) {
     if (data[0].type === 'orderBook') {
-      let asks = this.formatOrderBooks(data[0].data.asks)
-      let bids = this.formatOrderBooks(data[0].data.bids)
-      let newBidBook = priceStore.data.bids.concat(bids)
-      let newAskBook = priceStore.data.asks.concat(asks)
-      priceStore.data.bids = utils.orderBidBook(newBidBook)
-      priceStore.data.asks = utils.orderAskBook(newAskBook)
+      let asks = this.formatOrderBooks(data[0].data.asks).slice(0, 20)
+      let bids = this.formatOrderBooks(data[0].data.bids).slice(0, 20)
+      pipeline.sendAskThroughPipeline(asks)
+      pipeline.sendBidThroughPipeline(bids)
     } else {
       this.formatModifyOrders(data)
+      log(priceStore.bids, priceStore.asks)
+
+      // Websocket broadcast for updates of priceStore to client side will go here
+      // ws.broadcast()
+
     }
   }
 
@@ -63,7 +64,8 @@ class Poloniex extends Exchange {
       if (order.data.type === 'bid')
       newBidsBook.push(newOrder)
     })
-    let something = { bids: newBidsBook, asks: newAsksBook }
+    pipeline.sendAskThroughPipeline(newAsksBook)
+    pipeline.sendBidThroughPipeline(newBidsBook)
   }
 
   
