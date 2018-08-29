@@ -7,7 +7,7 @@ const chalk = require('chalk')
 const wss = new WebSocket.Server({ port: process.env.PORT })
 
 wss.on('connection', function connection(ws) {
-  wss.send(`${JSON.stringify(priceStore.data)}`)
+  ws.send(`${JSON.stringify(priceStore.data)}`)
   log(chalk.magenta('Client connection initiated.'))
 })
 
