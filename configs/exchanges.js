@@ -6,7 +6,7 @@ module.exports = {
   PrimaryExchangeCoin: 'BTC',
   ExchangePairs: {
     'BTC': {
-      bittrex: ['ETH'],
+      bittrex: ['ETH', 'DOGE'],
       poloniex: ['ETH']
     },
   }

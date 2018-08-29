@@ -13,27 +13,33 @@ const pipeline = require('../orderbook/pipeline')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].poloniex)
+const pairs = coins.map(coin => `${primaryCoin}_${coin}`)
 
 class Poloniex extends Exchange {
   constructor () {
     super('poloniex')
     this.coins = coins.slice()
+    this.pairs = pairs
     this.client = new PoloniexClient()
     this.client.on('open', () => { log(`Poloniex WebSocket connection open`) })
     this.client.on('close', (reason, details) => { log(`Poloniex WebSocket connection disconnected`) })
-    this.client.on('error', (error) => { log(`Poloniex client error.`) })
+    this.client.on('error', (error) => { log(`Poloniex client error.`, error) })
   }
 
-  async updateTickers () {
+  updateTickers () {
+    this.pairs.forEach(pair => { this.updatePairs(pair) })
+  }
+
+  async updatePairs (pair) {
     try {
-      this.client.subscribe('BTC_ETH')
+      this.client.subscribe(pair)
       this.client.on('message', (channelName, data, seq) => {
-        if (channelName === 'BTC_ETH') {
+        if (channelName === pair) {
           this.filterWebsocketDataType(data)
         }
       })
       this.client.openWebSocket({ version: 2 })
-    } catch (error) { throw new Error(`Error in method updateTickers, problem connecting to Poloniex websocket.`) }
+    } catch (error) { throw new Error(`Error in method updatePairs, problem connecting to Poloniex websocket.`) }
   }
 
   filterWebsocketDataType(data) {

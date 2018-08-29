@@ -10,25 +10,30 @@ const primaryCoin = exchangeConfigs.PrimaryExchangeCoin
 const log = console.log
 const chalk = require('chalk')
 const priceStore = require('../orderbook/pricestore').data
-const websocket = require('../websocketServer')
 const pipeline = require('../orderbook/pipeline')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].bittrex)
+const pairs = coins.map(coin => `${primaryCoin}-${coin}`)
 
 class Bittrex extends Exchange {
   constructor () {
     super('bittrex')
     this.coins = coins.slice()
+    this.pairs = pairs
     this.client = BittrexClient
     this.client.options ({
       verbose: true
     })
   }
 
-  async updateTickers () {
+  updateTickers () {
+    this.pairs.forEach(pair => { this.updatePairs(pair) })
+  }
+
+  async updatePairs (pair) {
     try {
-      this.client.getorderbook({ market : 'BTC-ETH', depth : '20', type : 'both' }, ( data, error ) => {
+      this.client.getorderbook({ market : pair, depth : '20', type : 'both' }, ( data, error ) => {
         let topOfAsks = this.sliceOrderBooks(data.result.sell)
         let topOfBids = this.sliceOrderBooks(data.result.buy)
         let asks = this.formatOrderBooks(topOfAsks)
@@ -36,7 +41,7 @@ class Bittrex extends Exchange {
         priceStore.bids = bids
         priceStore.asks = asks
       })
-      this.client.websockets.subscribe(['BTC-ETH'], (data) => {
+      this.client.websockets.subscribe([`${pair}`], (data) => {
         if (data.M === 'updateExchangeState') {
           data.A.forEach(function(message) {
             let askChanges = message.Sells.map(order => { 
@@ -50,7 +55,7 @@ class Bittrex extends Exchange {
           })
         }
       })
-    } catch (error) { throw new Error(`Error in method updateTickers, problem connecting to Bittrex websocket.`) }
+    } catch (error) { throw new Error(`Error in method updatePairs, problem connecting to Bittrex websocket.`) }
   }
 
   sliceOrderBooks(data) {
