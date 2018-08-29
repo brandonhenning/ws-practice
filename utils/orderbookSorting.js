@@ -13,12 +13,12 @@ function orderBidBook (array) {
 
 function filterOnlyUniqueBids (array) {
   let sorted = _.uniqBy(array, 'price')
-  return priceStore.bids = sorted
+  return priceStore.bids = orderBidBook(sorted)
 }
 
 function filterOnlyUniqueAsks (array) {
   let sorted = _.uniqBy(array, 'price')
-  return priceStore.asks = sorted
+  return priceStore.asks = orderAskBook(sorted)
 }
 
 module.exports = {

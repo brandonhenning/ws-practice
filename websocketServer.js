@@ -8,13 +8,13 @@ const wss = new WebSocket.Server({ port: process.env.WEBSOCKET_PORT })
 
 wss.on('connection', function connection(ws) {
   ws.send(`${JSON.stringify(priceStore.data)}`)
+  log(chalk.magenta('Client connection initiated.'))
 })
 
 const broadcast = (data) => {
   try {
     wss.clients.forEach(function each(client) {
       client.send(`${JSON.stringify(data)}`)
-      log(chalk.magenta('Sent: updated prices'))
     })
   } catch (error) { throw new Error(`Websocket server broadcast error, client not receiving messages.`)}
 }

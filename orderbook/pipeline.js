@@ -1,12 +1,14 @@
 const priceStore = require('./pricestore').data
 const utils = require('../utils/orderbookSorting')
+const websocket = require('../websocketServer')
 
 function sendAskThroughPipeline (data) {
   try {
     checkAskBookLength(data)
     checkIfAsksMakeTopOfBook(data)
+    changeAskQuantityToZero(data)
     utils.filterOnlyUniqueAsks(priceStore.asks)
-    filterZeroQuantityAsks(priceStore.asks)
+    websocket.broadcast(priceStore)
   } catch (error) { throw new Error(`Problem sending ask order through ask pipeline to update priceStore.`) }
 }
 
@@ -14,8 +16,9 @@ function sendBidThroughPipeline (data) {
   try {
     checkBidBookLength(data)
     checkIfBidsMakeTopOfBook(data)
+    changeBidQuantityToZero(data)
     utils.filterOnlyUniqueBids(priceStore.bids)
-    filterZeroQuantityBids(priceStore.bids)
+    websocket.broadcast(priceStore)
   } catch (error) { throw new Error(`Problem sending bid order through bid pipeline to update priceStore.`) }
 }
 
@@ -55,7 +58,7 @@ function checkIfBidsMakeTopOfBook (data) {
 function checkIfAsksMakeTopOfBook (data) {
   try {
     let updates = data.filter(ask => {
-      if (ask.price > priceStore.asks[priceStore.asks.length - 1].price) {
+      if (ask.price < priceStore.asks[priceStore.asks.length - 1].price) {
         return ask
       }
     })
@@ -65,21 +68,57 @@ function checkIfAsksMakeTopOfBook (data) {
   } catch (error) { throw new Error(`Problem in determining if update asks price are in range of existing asks book prices.`) }
 }
 
-function filterZeroQuantityBids (data) {
-  let filtered = data.filter(order => {
-    return !(order.quantity === 0)
+function changeBidQuantityToZero (data) {
+  data.forEach(order => {
+    if (order.quantity == 0) {
+     let removed = priceStore.bids.filter(existing => {
+        return !(existing.price === order.price)
+      })
+      priceStore.bids = removed
+    }
   })
-  priceStore.bids = filtered
 }
 
-function filterZeroQuantityAsks (data) {
-  let filtered = data.filter(order => {
-    return !(order.quantity === 0)
+function changeAskQuantityToZero (data) {
+  data.forEach(order => {
+    if (order.quantity == 0) {
+     let removed = priceStore.asks.filter(existing => {
+        return !(existing.price === order.price)
+      })
+      priceStore.asks = removed
+    }
   })
-  priceStore.asks = filtered
+}
+
+function updateAskQuantity (data) {
+  data.forEach(order => {
+    if (order.quantity !== 0) {
+     let updated = priceStore.asks.map(existing => {
+        if (existing.price === order.price) {
+          existing.quantity = order.quantity
+        }
+      })
+      priceStore.asks = updated
+    }
+  })
+}
+
+function updateBidQuantity (data) {
+  data.forEach(order => {
+    if (order.quantity !== 0) {
+     let updated = priceStore.bids.map(existing => {
+        if (existing.price === order.price) {
+          existing.quantity = order.quantity
+        }
+      })
+      priceStore.bids = updated
+    }
+  })
 }
 
 module.exports = {
   sendAskThroughPipeline,
-  sendBidThroughPipeline
+  sendBidThroughPipeline,
+  updateAskQuantity,
+  updateBidQuantity
 }

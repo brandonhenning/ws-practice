@@ -45,7 +45,6 @@ class Poloniex extends Exchange {
         pipeline.sendBidThroughPipeline(bids)
       } else {
         this.formatModifyOrders(data)
-        websocket.broadcast(priceStore)
       }
     } catch (error) { throw new Error(`Error in method filterWebsocketDataType, problem reading order type.`) }
   }
@@ -57,7 +56,7 @@ class Poloniex extends Exchange {
       data.forEach(order => {
         let newOrder = {
           price: order.data.rate,
-          quantity: order.data.amount,
+          quantity: parseFloat(order.data.amount),
           exchanges: 'poloniex' 
         }
         if (order.data.type === 'ask')

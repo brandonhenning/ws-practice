@@ -47,7 +47,6 @@ class Bittrex extends Exchange {
             })
             pipeline.sendAskThroughPipeline(askChanges)
             pipeline.sendBidThroughPipeline(bidChanges)
-            websocket.broadcast(priceStore)
           })
         }
       })
