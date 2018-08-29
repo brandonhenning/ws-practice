@@ -1,5 +1,7 @@
 const WebSocket = require('ws')
 const priceStore = require('./orderbook/pricestore')
+const log = console.log
+const chalk = require('chalk')
 
 const wss = new WebSocket.Server({ port: 4545 })
 
@@ -11,20 +13,13 @@ wss.on('connection', function connection(ws) {
   }
 })
 
-function updateOrderBook(data) {
-  console.log('made it this far')
-  wss.emit(`${JSON.stringify(data)}`)
-}
-
-const broadcast = () => {
-  const json = JSON.stringify({
-    message: 'Hello hello!'
-  })
-  // wss.clients is an array of all connected clients
-  wss.clients.forEach(function each(client) {
-    client.send(json)
-    console.log('Sent: ' + json)
-  })
+const broadcast = (data) => {
+  try {
+    wss.clients.forEach(function each(client) {
+      client.send(`${JSON.stringify(data)}`)
+      log(chalk.magenta('Sent: updated prices'))
+    })
+  } catch (error) { throw new Error(`Websocket server broadcast error, client not receiving messages.`)}
 }
 
 module.exports = {

@@ -3,14 +3,6 @@ let data = {
   asks: []
 }
 
-let updates = {
-  bids: [],
-  asks: []
-}
-
-
-
 module.exports = {
-  data,
-  updates,
+  data
 }
