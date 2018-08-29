@@ -5,7 +5,8 @@ function sendAskThroughPipeline (data) {
   try {
     checkAskBookLength(data)
     checkIfAsksMakeTopOfBook(data)
-    filterExistingAsks(data)
+    utils.filterOnlyUniqueAsks(priceStore.asks)
+    filterZeroQuantityAsks(priceStore.asks)
   } catch (error) { throw new Error(`Problem sending ask order through ask pipeline to update priceStore.`) }
 }
 
@@ -13,13 +14,14 @@ function sendBidThroughPipeline (data) {
   try {
     checkBidBookLength(data)
     checkIfBidsMakeTopOfBook(data)
-    filterExistingBids(data)
+    utils.filterOnlyUniqueBids(priceStore.bids)
+    filterZeroQuantityBids(priceStore.bids)
   } catch (error) { throw new Error(`Problem sending bid order through bid pipeline to update priceStore.`) }
 }
 
 function checkAskBookLength (data) {
   try {
-    if (priceStore.asks.length < 25) {
+    if (priceStore.asks.length < 20) {
       let addData = priceStore.asks.concat(data)
       let sortData = utils.orderAskBook(addData)
       return priceStore.asks = sortData
@@ -29,7 +31,7 @@ function checkAskBookLength (data) {
 
 function checkBidBookLength (data) {
   try {
-    if (priceStore.bids.length < 25) {
+    if (priceStore.bids.length < 20) {
       let addData = priceStore.bids.concat(data)
       let sortData = utils.orderBidBook(addData)
       return priceStore.bids = sortData
@@ -63,63 +65,19 @@ function checkIfAsksMakeTopOfBook (data) {
   } catch (error) { throw new Error(`Problem in determining if update asks price are in range of existing asks book prices.`) }
 }
 
-function updateExistingBids (bid) {
-  try {
-    let newBids = priceStore.bids.reduce((accum, existing) => {
-      if (bid.price == existing.price) {
-        if (bid.quantity != 0) {
-          if (bid.exchanges == existing.exchanges) {
-            existing.quantity = bid.quantity
-            accum.push(existing)
-            return accum
-          }
-          else if (bid.exchanges != existing.exchanges) {
-            accum.push(existing, bid)
-            return accum
-          }
-        }
-      } else accum.push(existing)
-      return accum
-    }, [])
-    return newBids
-  } catch (error) { throw new Error(`Problem in updating existing bids with new orders.`) }
-}
-
-function updateExistingAsks (ask) {
-  try {
-    let newAsks = priceStore.asks.reduce((accum, existing) => {
-      if (ask.price == existing.price) {
-        if (ask.quantity != 0) {
-          if (ask.exchanges == existing.exchanges) {
-            existing.quantity = ask.quantity
-            accum.push(existing)
-            return accum
-          }
-          else if (ask.exchanges != existing.exchanges) {
-            accum.push(existing, ask)
-            return accum
-          }
-        }
-      } else accum.push(existing)
-      return accum
-    }, [])
-    return newAsks
-  } catch (error) { throw new Error(`Problem in updating existing asks with new orders.`) }
-}
-
-function filterExistingAsks (data) {
-  return data.forEach(ask => {
-    return updateExistingAsks(ask)
+function filterZeroQuantityBids (data) {
+  let filtered = data.filter(order => {
+    return !(order.quantity === 0)
   })
+  priceStore.bids = filtered
 }
 
-function filterExistingBids (data) {
-  return data.forEach(bid => {
-    return updateExistingBids(bid)
+function filterZeroQuantityAsks (data) {
+  let filtered = data.filter(order => {
+    return !(order.quantity === 0)
   })
+  priceStore.asks = filtered
 }
-
-
 
 module.exports = {
   sendAskThroughPipeline,

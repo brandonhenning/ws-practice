@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const priceStore = require('../orderbook/pricestore').data
 
 function orderAskBook (array) {
   let sorted = _.orderBy(array, [(o) => +o.price], ['asc'])
@@ -10,9 +11,19 @@ function orderBidBook (array) {
   return sorted
 }
 
+function filterOnlyUniqueBids (array) {
+  let sorted = _.uniqBy(array, 'price')
+  return priceStore.bids = sorted
+}
 
+function filterOnlyUniqueAsks (array) {
+  let sorted = _.uniqBy(array, 'price')
+  return priceStore.asks = sorted
+}
 
 module.exports = {
   orderAskBook,
-  orderBidBook
+  orderBidBook,
+  filterOnlyUniqueBids,
+  filterOnlyUniqueAsks
 }

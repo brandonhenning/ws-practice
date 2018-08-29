@@ -9,9 +9,10 @@ const exchangeConfigs = require('../configs/exchanges')
 const primaryCoin = exchangeConfigs.PrimaryExchangeCoin
 const log = console.log
 const chalk = require('chalk')
-const priceStore = require('../orderbook/pricestore')
+const priceStore = require('../orderbook/pricestore').data
 const websocket = require('../websocketServer')
 const pipeline = require('../orderbook/pipeline')
+const utils = require('../utils/orderbookSorting')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].bittrex)
@@ -33,8 +34,8 @@ class Bittrex extends Exchange {
         let topOfBids = this.sliceOrderBooks(data.result.buy)
         let asks = this.formatOrderBooks(topOfAsks)
         let bids = this.formatOrderBooks(topOfBids)
-        priceStore.data.bids = bids
-        priceStore.data.asks = asks
+        priceStore.bids = bids
+        priceStore.asks = asks
       })
       this.client.websockets.subscribe(['BTC-ETH'], (data) => {
         if (data.M === 'updateExchangeState') {
@@ -47,7 +48,9 @@ class Bittrex extends Exchange {
             })
             pipeline.sendAskThroughPipeline(askChanges)
             pipeline.sendBidThroughPipeline(bidChanges)
-            websocket.broadcast(priceStore)
+            log(priceStore.bids, priceStore.bids.length)
+            log(priceStore.asks, priceStore.asks.length)
+            // websocket.broadcast(priceStore)
           })
         }
       })
