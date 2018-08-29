@@ -12,7 +12,6 @@ const chalk = require('chalk')
 const priceStore = require('../orderbook/pricestore').data
 const websocket = require('../websocketServer')
 const pipeline = require('../orderbook/pipeline')
-const utils = require('../utils/orderbookSorting')
 
 // Only take coins from the exchange configs that are also valid in coinsConfig
 const coins = _.intersection(activeCoins, exchangeConfigs.ExchangePairs[primaryCoin].bittrex)
@@ -48,9 +47,7 @@ class Bittrex extends Exchange {
             })
             pipeline.sendAskThroughPipeline(askChanges)
             pipeline.sendBidThroughPipeline(bidChanges)
-            log(priceStore.bids, priceStore.bids.length)
-            log(priceStore.asks, priceStore.asks.length)
-            // websocket.broadcast(priceStore)
+            websocket.broadcast(priceStore)
           })
         }
       })
