@@ -7,3 +7,6 @@ console.log(process.env.PORT)
 
 engine.start()
 
+app.get('/', (request, response) => {
+  return response.json({message: 'Ping received!'})
+})
