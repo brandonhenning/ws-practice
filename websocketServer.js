@@ -8,10 +8,6 @@ const wss = new WebSocket.Server({ port: process.env.WEBSOCKET_PORT })
 
 wss.on('connection', function connection(ws) {
   ws.send(`${JSON.stringify(priceStore.data)}`)
-  if (priceStore.updateTrigger === true) {
-    ws.send(`${JSON.stringify(priceStore.updates)}`)
-    priceStore.updateTrigger = false
-  }
 })
 
 const broadcast = (data) => {
