@@ -19,6 +19,7 @@ const broadcast = (data) => {
   } catch (error) { throw new Error(`Websocket server broadcast error, client not receiving messages.`)}
 }
 
+
 module.exports = {
   broadcast: broadcast
 }
