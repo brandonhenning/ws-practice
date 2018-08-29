@@ -4,7 +4,7 @@ const priceStore = require('./orderbook/pricestore')
 const log = console.log
 const chalk = require('chalk')
 
-const wss = new WebSocket.Server({ port: 4545 })
+const wss = new WebSocket.Server({ port: 4545 || process.env.PORT })
 
 wss.on('connection', function connection(ws) {
   ws.send(`${JSON.stringify(priceStore.data)}`)
