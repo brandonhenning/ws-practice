@@ -9,7 +9,6 @@ function sendAskThroughPipeline (data) {
     changeAskQuantityToZero(data)
     utils.filterOnlyUniqueAsks(priceStore.asks)
     websocket.broadcast(priceStore)
-    console.log(priceStore.asks[0])
   } catch (error) { throw new Error(`Problem sending ask order through ask pipeline to update priceStore.`) }
 }
 

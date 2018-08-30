@@ -1,6 +1,6 @@
 module.exports = {
   Exchanges: {
-    bittrex: false,
+    bittrex: true,
     poloniex: true,
   },
   PrimaryExchangeCoin: 'BTC',
