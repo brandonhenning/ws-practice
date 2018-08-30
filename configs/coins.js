@@ -1,7 +1,7 @@
 module.exports = {
   Coins: {
     BTC: true,
-    ETH: true,
+    ETH: false,
     DOGE: false
   }
 }
