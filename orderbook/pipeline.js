@@ -2,6 +2,7 @@ const priceStore = require('./pricestore').data
 const utils = require('../utils/orderbookSorting')
 const websocket = require('../websocketServer')
 
+
 function sendAskThroughPipeline (data) {
   try {
     checkAskBookLength(data)
