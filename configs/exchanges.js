@@ -2,7 +2,7 @@ module.exports = {
   Exchanges: {
     bittrex: true,
     poloniex: true,
-    binance: true
+    binance: false
   },
   PrimaryExchangeCoin: 'BTC',
   ExchangePairs: {
