@@ -21,7 +21,6 @@ function filterOnlyUniqueAsks (array) {
   return priceStore.asks = orderAskBook(sorted)
 }
 
-
 module.exports = {
   orderAskBook,
   orderBidBook,
