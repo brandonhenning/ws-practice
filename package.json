@@ -15,6 +15,7 @@
     "express": "^4.16.3",
     "jsonic": "^0.3.0",
     "lodash": "^4.17.10",
+    "node-binance-api": "^0.8.2",
     "node-fetch": "^2.2.0",
     "node.bittrex.api": "^1.0.0",
     "poloniex-api-node": "^1.9.0",
