@@ -32,6 +32,8 @@ class Binance extends Exchange {
         let asks = this.client.sortAsks(depth.asks, max);
         let formattedBids = this.formatOrderBooks(bids)
         let formattedAsks = this.formatOrderBooks(asks)
+        pipeline.clearOldBinanceAsks()
+        pipeline.clearOldBinanceBids()
         pipeline.sendAskThroughPipeline(formattedAsks)
         pipeline.sendBidThroughPipeline(formattedBids)
       })

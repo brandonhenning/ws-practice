@@ -117,9 +117,34 @@ function updateBidQuantity (data) {
   })
 }
 
+function clearOldBinanceBids () {
+  try {
+    if (priceStore.bids.length > 0) {
+      let filteredBids = priceStore.bids.filter(order => {
+        return order.exchanges !== 'binance'
+      })
+      priceStore.bids = filteredBids
+    }
+  } catch (error) { throw new Error(`Error in clearOldBinanceBids in pipeline.js.`)}
+}
+
+function clearOldBinanceAsks () {
+  try {
+    if (priceStore.asks.length > 0) {
+      let filteredAsks = priceStore.asks.filter(order => {
+        return order.exchanges !== 'binance'
+      })
+      priceStore.asks = filteredAsks
+    }
+  } catch (error) { throw new Error(`Error in clearOldBinanceBids in pipeline.js.`)}
+}
+
+
 module.exports = {
   sendAskThroughPipeline,
   sendBidThroughPipeline,
   updateAskQuantity,
-  updateBidQuantity
+  updateBidQuantity,
+  clearOldBinanceAsks,
+  clearOldBinanceBids
 }
