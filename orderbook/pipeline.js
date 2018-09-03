@@ -10,7 +10,6 @@ function sendAskThroughPipeline (data) {
     changeAskQuantityToZero(data)
     utils.filterOnlyUniqueAsks(priceStore.asks)
     websocket.broadcast(priceStore)
-    console.log(priceStore)
   } catch (error) { throw new Error(`Problem sending ask order through ask pipeline to update priceStore.`) }
 }
 
@@ -21,7 +20,6 @@ function sendBidThroughPipeline (data) {
     changeBidQuantityToZero(data)
     utils.filterOnlyUniqueBids(priceStore.bids)
     websocket.broadcast(priceStore)
-    console.log(priceStore)
   } catch (error) { throw new Error(`Problem sending bid order through bid pipeline to update priceStore.`) }
 }
 
