@@ -51,8 +51,6 @@ class Binance extends Exchange {
       return formattedArray
     } catch (error) { throw new Error(`Error in method formatOrderBooks, problem formatting Binance orderbook data.`) }
   }
-  
-
 }
 
 module.exports = new Binance()
