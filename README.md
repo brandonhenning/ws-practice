@@ -7,6 +7,8 @@ This is the back end for practicing websockets using the websocket apis for diff
 ## Linkes
 [Deployed Live Link](https://ws-client-practice.firebaseapp.com/)
 
+[Client Side Repo](https://github.com/brandonhenning/ws-practice-client)
+
 
 ### ToDo's
 - At the moment there is only one PriceStore that data is being streamed into and out of. Need to add a feature that creates a PriceStore for every chosen currency pair. 
